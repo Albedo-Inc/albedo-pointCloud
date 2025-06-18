@@ -59,7 +59,7 @@
 		//CA13地理信息点云
 		const url = 'http://5.9.65.151/mschuetz/potree/resources/pointclouds/opentopography/CA13_1.4/cloud.js'
 		const  url3 = './resources/test1/metadata.json'
-		Potree.loadPointCloud(url, "CA13", function(e){
+		Potree.loadPointCloud(url2, "CA13", function(e){
 			viewer.scene.addPointCloud(e.pointcloud);
 			e.pointcloud.position.z = 0;
 			let material = e.pointcloud.material;
