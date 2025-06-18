@@ -54160,13 +54160,19 @@ float getPointSize(){
 	float r = uOctreeSpacing * 1.7;
 	vRadius = r;
 	#if defined fixed_point_size
+		// 使用固定大小，不受spacing和LOD层级影响
 		pointSize = size;
 	#elif defined attenuated_point_size
 		if(uUseOrthographicCamera){
 			pointSize = size;
 		}else{
-			pointSize = size * spacing * projFactor;
-			//pointSize = pointSize * projFactor;
+			#if defined uniform_point_size
+				// 统一点大小模式：忽略spacing差异，保持视觉一致性
+				pointSize = size * projFactor;
+			#else
+				// 标准模式：考虑spacing（会导致不同LOD层级点大小不同）
+				pointSize = size * spacing * projFactor;
+			#endif
 		}
 	#elif defined adaptive_point_size
 		if(uUseOrthographicCamera) {
@@ -55040,8 +55046,11 @@ void main() {
 			let maxSize = getValid(parameters.maxSize, 50.0);
 			let treeType = getValid(parameters.treeType, TreeType.OCTREE);
 
+			// 默认使用固定点大小，避免LOD层级影响点的视觉大小
 			this._pointSizeType = PointSizeType.FIXED;
 			this._shape = PointShape.SQUARE;
+			// 新增：统一点大小选项，忽略LOD层级差异
+			this._uniformPointSize = getValid(parameters.uniformPointSize, true);
 			this._useClipBox = false;
 			this.clipBoxes = [];
 			this.clipPolygons = [];
@@ -55243,6 +55252,10 @@ void main() {
 				defines.push('#define attenuated_point_size');
 			} else if (this.pointSizeType === PointSizeType.ADAPTIVE) {
 				defines.push('#define adaptive_point_size');
+			}
+
+			if (this._uniformPointSize) {
+				defines.push('#define uniform_point_size');
 			}
 
 			if (this.shape === PointShape.SQUARE) {
@@ -55591,6 +55604,25 @@ void main() {
 				this.updateShaderSource();
 				this.dispatchEvent({
 					type: 'point_size_type_changed',
+					target: this,
+				});
+				this.dispatchEvent({
+					type: 'material_property_changed',
+					target: this,
+				});
+			}
+		}
+
+		get uniformPointSize() {
+			return this._uniformPointSize;
+		}
+
+		set uniformPointSize(value) {
+			if (this._uniformPointSize !== value) {
+				this._uniformPointSize = value;
+				this.updateShaderSource();
+				this.dispatchEvent({
+					type: 'uniform_point_size_changed',
 					target: this,
 				});
 				this.dispatchEvent({
@@ -62988,6 +63020,16 @@ void main() {
 				},
 			});
 
+			this.dom.find('#sldPointSize').slider({
+				value: this.viewer.getPointSize(),
+				min: 0.1,
+				max: 10.0,
+				step: 0.1,
+				slide: (event, ui) => {
+					this.viewer.setPointSize(ui.value);
+				},
+			});
+
 			$('#sldEDLRadius').slider({
 				value: this.viewer.getEDLRadius(),
 				min: 1,
@@ -63028,6 +63070,11 @@ void main() {
 				$('#sldFOV').slider({ value: this.viewer.getFOV() });
 			});
 
+			this.viewer.addEventListener('point_size_changed', event => {
+				$('#lblPointSize')[0].innerHTML = this.viewer.getPointSize().toFixed(1);
+				$('#sldPointSize').slider({ value: this.viewer.getPointSize() });
+			});
+
 			this.viewer.addEventListener('use_edl_changed', event => {
 				$('#chkEDLEnabled')[0].checked = this.viewer.getEDLEnabled();
 			});
@@ -63056,6 +63103,7 @@ void main() {
 
 			$('#lblPointBudget')[0].innerHTML = Utils.addCommas(this.viewer.getPointBudget());
 			$('#lblFOV')[0].innerHTML = parseInt(this.viewer.getFOV());
+			$('#lblPointSize')[0].innerHTML = this.viewer.getPointSize().toFixed(1);
 			$('#lblEDLRadius')[0].innerHTML = this.viewer.getEDLRadius().toFixed(1);
 			$('#lblEDLStrength')[0].innerHTML = this.viewer.getEDLStrength().toFixed(1);
 			$('#lblEDLOpacity')[0].innerHTML = this.viewer.getEDLOpacity().toFixed(2);
@@ -72782,6 +72830,7 @@ void main() {
 				this.useDEMCollisions = false;
 				this.generateDEM = false;
 				this.minNodeSize = 30;
+			this.pointSize = 1.0;
 				this.edlStrength = 1.0;
 				this.edlRadius = 1.4;
 				this.edlOpacity = 1.0;
@@ -73072,6 +73121,21 @@ void main() {
 			if (this.minNodeSize !== value) {
 				this.minNodeSize = value;
 				this.dispatchEvent({ type: 'minnodesize_changed', viewer: this });
+			}
+		}
+
+		getPointSize() {
+			return this.pointSize || 1.0;
+		}
+
+		setPointSize(value) {
+			if (this.pointSize !== value) {
+				this.pointSize = value;
+				// 更新所有点云的大小
+				for (let pointcloud of this.scene.pointclouds) {
+					pointcloud.material.size = value;
+				}
+				this.dispatchEvent({ type: 'point_size_changed', viewer: this });
 			}
 		}
 
@@ -73644,6 +73708,12 @@ void main() {
 		// 增强的点云加载回调 - 自动应用最佳相机位置
 		onPointCloudAdded(pointcloud, options = {}) {
 			if (!pointcloud) return;
+
+			// 强制设置固定点大小，避免LOD层级影响
+			if (pointcloud.material) {
+				pointcloud.material.pointSizeType = Potree.PointSizeType.FIXED;
+				pointcloud.material.uniformPointSize = true;
+			}
 
 			// 调用原有的回调
 			if (this.pointCloudLoadedCallback) {
@@ -74330,6 +74400,11 @@ void main() {
 				pointcloud.minimumNodePixelSize = this.minNodeSize;
 
 				let material = pointcloud.material;
+
+				// 强制设置为固定点大小，确保点云大小一致
+				material.pointSizeType = Potree.PointSizeType.FIXED;
+				material.uniformPointSize = true;
+				material.size = this.getPointSize();
 
 				material.uniforms.uFilterReturnNumberRange.value = this.filterReturnNumberRange;
 				material.uniforms.uFilterNumberOfReturnsRange.value = this.filterNumberOfReturnsRange;

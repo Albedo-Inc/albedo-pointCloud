@@ -32,8 +32,11 @@ export class PointCloudMaterial extends THREE.RawShaderMaterial {
 		let maxSize = getValid(parameters.maxSize, 50.0);
 		let treeType = getValid(parameters.treeType, TreeType.OCTREE);
 
+		// 默认使用固定点大小，避免LOD层级影响点的视觉大小
 		this._pointSizeType = PointSizeType.FIXED;
 		this._shape = PointShape.SQUARE;
+		// 新增：统一点大小选项，忽略LOD层级差异
+		this._uniformPointSize = getValid(parameters.uniformPointSize, true);
 		this._useClipBox = false;
 		this.clipBoxes = [];
 		this.clipPolygons = [];
@@ -235,6 +238,10 @@ export class PointCloudMaterial extends THREE.RawShaderMaterial {
 			defines.push('#define attenuated_point_size');
 		} else if (this.pointSizeType === PointSizeType.ADAPTIVE) {
 			defines.push('#define adaptive_point_size');
+		}
+
+		if (this._uniformPointSize) {
+			defines.push('#define uniform_point_size');
 		}
 
 		if (this.shape === PointShape.SQUARE) {
@@ -583,6 +590,25 @@ export class PointCloudMaterial extends THREE.RawShaderMaterial {
 			this.updateShaderSource();
 			this.dispatchEvent({
 				type: 'point_size_type_changed',
+				target: this,
+			});
+			this.dispatchEvent({
+				type: 'material_property_changed',
+				target: this,
+			});
+		}
+	}
+
+	get uniformPointSize() {
+		return this._uniformPointSize;
+	}
+
+	set uniformPointSize(value) {
+		if (this._uniformPointSize !== value) {
+			this._uniformPointSize = value;
+			this.updateShaderSource();
+			this.dispatchEvent({
+				type: 'uniform_point_size_changed',
 				target: this,
 			});
 			this.dispatchEvent({

@@ -678,13 +678,19 @@ float getPointSize(){
 	float r = uOctreeSpacing * 1.7;
 	vRadius = r;
 	#if defined fixed_point_size
+		// 使用固定大小，不受spacing和LOD层级影响
 		pointSize = size;
 	#elif defined attenuated_point_size
 		if(uUseOrthographicCamera){
 			pointSize = size;
 		}else{
-			pointSize = size * spacing * projFactor;
-			//pointSize = pointSize * projFactor;
+			#if defined uniform_point_size
+				// 统一点大小模式：忽略spacing差异，保持视觉一致性
+				pointSize = size * projFactor;
+			#else
+				// 标准模式：考虑spacing（会导致不同LOD层级点大小不同）
+				pointSize = size * spacing * projFactor;
+			#endif
 		}
 	#elif defined adaptive_point_size
 		if(uUseOrthographicCamera) {

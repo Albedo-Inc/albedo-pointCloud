@@ -77,6 +77,16 @@ export class Sidebar {
 			},
 		});
 
+		this.dom.find('#sldPointSize').slider({
+			value: this.viewer.getPointSize(),
+			min: 0.1,
+			max: 10.0,
+			step: 0.1,
+			slide: (event, ui) => {
+				this.viewer.setPointSize(ui.value);
+			},
+		});
+
 		$('#sldEDLRadius').slider({
 			value: this.viewer.getEDLRadius(),
 			min: 1,
@@ -117,6 +127,11 @@ export class Sidebar {
 			$('#sldFOV').slider({ value: this.viewer.getFOV() });
 		});
 
+		this.viewer.addEventListener('point_size_changed', event => {
+			$('#lblPointSize')[0].innerHTML = this.viewer.getPointSize().toFixed(1);
+			$('#sldPointSize').slider({ value: this.viewer.getPointSize() });
+		});
+
 		this.viewer.addEventListener('use_edl_changed', event => {
 			$('#chkEDLEnabled')[0].checked = this.viewer.getEDLEnabled();
 		});
@@ -145,6 +160,7 @@ export class Sidebar {
 
 		$('#lblPointBudget')[0].innerHTML = Utils.addCommas(this.viewer.getPointBudget());
 		$('#lblFOV')[0].innerHTML = parseInt(this.viewer.getFOV());
+		$('#lblPointSize')[0].innerHTML = this.viewer.getPointSize().toFixed(1);
 		$('#lblEDLRadius')[0].innerHTML = this.viewer.getEDLRadius().toFixed(1);
 		$('#lblEDLStrength')[0].innerHTML = this.viewer.getEDLStrength().toFixed(1);
 		$('#lblEDLOpacity')[0].innerHTML = this.viewer.getEDLOpacity().toFixed(2);

@@ -92,6 +92,7 @@ export class Viewer extends EventDispatcher {
 			this.useDEMCollisions = false;
 			this.generateDEM = false;
 			this.minNodeSize = 30;
+		this.pointSize = 1.0;
 			this.edlStrength = 1.0;
 			this.edlRadius = 1.4;
 			this.edlOpacity = 1.0;
@@ -382,6 +383,21 @@ export class Viewer extends EventDispatcher {
 		if (this.minNodeSize !== value) {
 			this.minNodeSize = value;
 			this.dispatchEvent({ type: 'minnodesize_changed', viewer: this });
+		}
+	}
+
+	getPointSize() {
+		return this.pointSize || 1.0;
+	}
+
+	setPointSize(value) {
+		if (this.pointSize !== value) {
+			this.pointSize = value;
+			// 更新所有点云的大小
+			for (let pointcloud of this.scene.pointclouds) {
+				pointcloud.material.size = value;
+			}
+			this.dispatchEvent({ type: 'point_size_changed', viewer: this });
 		}
 	}
 
@@ -954,6 +970,12 @@ export class Viewer extends EventDispatcher {
 	// 增强的点云加载回调 - 自动应用最佳相机位置
 	onPointCloudAdded(pointcloud, options = {}) {
 		if (!pointcloud) return;
+
+		// 强制设置固定点大小，避免LOD层级影响
+		if (pointcloud.material) {
+			pointcloud.material.pointSizeType = Potree.PointSizeType.FIXED;
+			pointcloud.material.uniformPointSize = true;
+		}
 
 		// 调用原有的回调
 		if (this.pointCloudLoadedCallback) {
@@ -1640,6 +1662,11 @@ export class Viewer extends EventDispatcher {
 			pointcloud.minimumNodePixelSize = this.minNodeSize;
 
 			let material = pointcloud.material;
+
+			// 强制设置为固定点大小，确保点云大小一致
+			material.pointSizeType = Potree.PointSizeType.FIXED;
+			material.uniformPointSize = true;
+			material.size = this.getPointSize();
 
 			material.uniforms.uFilterReturnNumberRange.value = this.filterReturnNumberRange;
 			material.uniforms.uFilterNumberOfReturnsRange.value = this.filterNumberOfReturnsRange;
