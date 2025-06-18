@@ -1,0 +1,53 @@
+<div id="sidebar_root" class="">
+	<div> 
+
+	<div id="potree_menu" class="accordion">
+
+		
+		<!-- APPEARANCE -->
+		<h3 id="menu_appearance"><span>外观设置</span></h3>
+		<div>
+			<ul class="pv-menu-list">
+				<li><span>最大点数</span>: <span id="lblPointBudget"></span> <div id="sldPointBudget"></div></li>
+				<li><span>视野角度</span>: <span id="lblFOV"></span><div id="sldFOV"></div></li>
+
+				<div class="divider"><span>眼球穹顶光照</span></div>
+
+				<li><label><input type="checkbox" id="chkEDLEnabled"/><span>启用EDL</span></label></li>
+				<li><span>EDL半径</span>: <span id="lblEDLRadius"></span><div id="sldEDLRadius"></div></li>
+				<li><span>EDL强度</span>: <span id="lblEDLStrength"></span><div id="sldEDLStrength"></div></li>
+				<li><span>EDL透明度</span>: <span id="lblEDLOpacity"></span><div id="sldEDLOpacity"></div></li>
+				
+				<div class="divider"><span>背景设置</span></div>
+
+				<li>
+					<selectgroup id="background_options">
+						<option id="background_options_skybox" value="skybox">天空盒</option>
+						<option id="background_options_gradient" value="gradient">渐变</option>
+						<option id="background_options_black" value="black">黑色</option>
+						<option id="background_options_white" value="white">白色</option>
+						<option id="background_options_none" value="null">无</option>
+					</selectgroup>
+				</li>
+
+				<div class="divider"><span>其他设置</span></div>
+
+				<li>
+					<selectgroup id="splat_quality_options">
+						<option id="splat_quality_options_standard" value="standard">标准质量</option>
+						<option id="splat_quality_options_hq" value="hq">高质量</option>
+					</selectgroup>
+				</li>
+				
+				<li><span>最小节点大小</span>: <span id="lblMinNodeSize"></span><div id="sldMinNodeSize"></div></li>
+				<li><label><input id="show_bounding_box" type="checkbox" /><span>显示边界框</span></label></li>
+				<li><label><input id="set_freeze" type="checkbox" /><span>冻结渲染</span></label></li>
+			</ul>
+			
+		</div>
+		
+	</div>
+	</div>
+</div>
+
+

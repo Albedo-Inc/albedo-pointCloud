@@ -1,0 +1,87 @@
+{
+	"name": "@potree/sdk-simplified",
+	"private": false,
+	"version": "1.8.0",
+	"description": "简化版PotreeJS SDK - 专注于点云可视化核心功能的WebGL点云查看器",
+	"keywords": [
+		"point-cloud",
+		"pointcloud",
+		"3d-visualization",
+		"webgl",
+		"threejs",
+		"las",
+		"laz",
+		"poc",
+		"viewer",
+		"octree",
+		"potree",
+		"simplified-sdk"
+	],
+	"main": "./build/potree/potree.js",
+	"types": "./types/index.d.ts",
+	"files": [
+		"build/",
+		"examples/",
+		"docs/",
+		"types/",
+		"README.md",
+		"LICENSE"
+	],
+	"scripts": {
+		"start": "gulp watch",
+		"dev": "gulp watch",
+		"build": "gulp build pack",
+		"build:prod": "NODE_ENV=production gulp build pack",
+		"clean": "rimraf build",
+		"serve": "gulp webserver",
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"lint": "eslint src/**/*.js",
+		"format": "prettier --write src/**/*.js",
+		"postinstall": "npm run build"
+	},
+	"devDependencies": {
+		"eslint": "^8.57.1",
+		"gulp": "^4.0.2",
+		"gulp-concat": "^2.6.1",
+		"gulp-connect": "^5.7.0",
+		"prettier": "^3.5.3",
+		"rimraf": "^5.0.10",
+		"rollup": "^2.79.2"
+	},
+	"dependencies": {
+		"json5": "^2.2.3",
+		"through": "^2.3.8"
+	},
+	"peerDependencies": {
+		"three": ">=0.140.0"
+	},
+	"engines": {
+		"node": ">=16.0.0",
+		"npm": ">=8.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/potree/potree.git"
+	},
+	"bugs": {
+		"url": "https://github.com/potree/potree/issues"
+	},
+	"homepage": "https://github.com/potree/potree#readme",
+	"author": {
+		"name": "Markus Schütz",
+		"email": "mschuetz@potree.org"
+	},
+	"contributors": [
+		{
+			"name": "PotreeJS Community",
+			"url": "https://github.com/potree/potree/graphs/contributors"
+		}
+	],
+	"license": "BSD-2-Clause",
+	"browserslist": [
+		"> 1%",
+		"last 2 versions",
+		"not dead",
+		"not ie <= 11"
+	]
+}
